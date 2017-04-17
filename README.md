@@ -12,10 +12,20 @@ PIC10F322
 Connect a 1MHz reference oscillator to PIN RA2 (T0CKI)  
 Connect the LO signal to RA1 (CLKIN)  
 The audio signal is available on RA0  
-Switch RA3 to GND to add an offset of -700Hz  
+Switch RA3 to GND to add an offset of -700Hz
+
+The supply voltage 3.3V or 5V depends on the used oscillator.
+
+![Hardware SMD](hardware.png "Hardware SMD")
 
 
-![Hardware](hardware.png "Hardware")
+
+
+It's also possible to choose THD components.
+Then the size would be something like:
+
+
+![Hardware THD](hardware_thd.png "Hardware THD")
 
 ## IDE
 IDE: MPLAB X ID v3.55  
