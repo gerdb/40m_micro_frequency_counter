@@ -4,7 +4,12 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+            <file>file:/home/gerd/Documents/Elektronik/qrss/frq_cnt/40m_micro_frequency_counter/frq_cnt.X/nbproject/Makefile-XC8_PIC10F322.mk</file>
             <file>file:/home/gerd/Documents/Elektronik/qrss/frq_cnt/40m_micro_frequency_counter/frq_cnt.X/project_information.txt</file>
+            <file>file:/home/gerd/Documents/Elektronik/qrss/frq_cnt/40m_micro_frequency_counter/frq_cnt.X/interrupts.c</file>
+            <file>file:/home/gerd/Documents/Elektronik/qrss/frq_cnt/40m_micro_frequency_counter/frq_cnt.X/main.c</file>
+            <file>file:/home/gerd/Documents/Elektronik/qrss/frq_cnt/40m_micro_frequency_counter/frq_cnt.X/nbproject/Makefile-impl.mk</file>
+            <file>file:/home/gerd/Documents/Elektronik/qrss/frq_cnt/40m_micro_frequency_counter/frq_cnt.X/configuration_bits.c</file>
         </group>
     </open-files>
 </project-private>

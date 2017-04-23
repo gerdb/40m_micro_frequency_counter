@@ -1,13 +1,14 @@
-_beep_long: CODE, 473 0 4
-_main: CODE, 17 0 194
-_pause_sound: CODE, 451 0 11
+_beep_long: CODE, 479 0 4
+_main: CODE, 17 0 144
+_pause_sound: CODE, 457 0 11
 __initialization: CODE, 15 0 0
-___lwdiv: CODE, 305 0 62
-___lldiv: CODE, 211 0 94
-_isr: CODE, 462 0 11
-_pause_long: CODE, 477 0 3
-_pause: CODE, 440 0 11
-_beep_short: CODE, 426 0 14
-_morse: CODE, 367 0 42
-___bmul: CODE, 409 0 17
-Total: 463
+___lwdiv: CODE, 323 0 62
+___lldiv: CODE, 161 0 94
+_isr: CODE, 468 0 11
+_pause_long: CODE, 483 0 3
+_pause: CODE, 446 0 11
+_beep_short: CODE, 432 0 14
+_morse: CODE, 385 0 30
+_output_val: CODE, 255 0 68
+___bmul: CODE, 415 0 17
+Total: 469

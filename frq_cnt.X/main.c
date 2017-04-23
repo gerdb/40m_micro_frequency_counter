@@ -1,9 +1,11 @@
 /******************************************************************************
  * 40m band frequency counter with audio CW output
  * 
- * 2017-4-16
+ * 2017-04-23
  * Gerd Bartelt
  * www.sebulli.com
+ * 
+ * V1.0.0
  * 
  * See project_information.txt for information about the hardware
  *                           
@@ -21,12 +23,20 @@
 /******************************************************************************/
 /* User Global Variable Declaration                                           */
 /******************************************************************************/
+
+// Enable this compiler switch to output frequency and
+// raw counter values over RS232
 //#define DEBUG_FRQ
 
+
+// Ports
 #define CW_OUT      PORTAbits.RA0
+#define CLK_IN      PORTAbits.RA1   
 #define SHIFT_IN    PORTAbits.RA3
 #define FRQREFIN    PORTAbits.RA2
+#define RS232_OUT CW_OUT
 
+// Union for bit and byte access
 typedef union {
     uint8_t byte;
     struct {
@@ -37,70 +47,122 @@ typedef union {
 /******************************************************************************/
 /* Main Program                                                               */
 /******************************************************************************/
+
+// Pause to set the audio frequency of about 700Hz
 void pause_sound() {
     for (uint8_t del2 = 128; del2; del2--) {NOP();} 
 }
-#ifdef DEBUG_FRQ
-void debug_frq(uint16_t val) {
-    CW_OUT = 1;
-    pause_sound();
-    CW_OUT = 0;
-    pause_sound();
-    
-    for (uint8_t i=16; i; i--) {
-        if (val & 0x8000)
-            CW_OUT = 1;
-        else
-            CW_OUT = 0;
-        pause_sound();
-    }
-    CW_OUT = 0;
-}
-#endif
+
 
 #ifndef DEBUG_FRQ
+// Pause between morse dots
 void pause () {
     for (uint8_t del1 = 255; del1; del1--) {
         pause_sound();
     }    
 }
+#endif
 
+// Long pause between morse dots
 void pause_long() {
+#ifndef DEBUG_FRQ
     pause();
     pause();
+#endif
 }
+
+#ifndef DEBUG_FRQ
+//Output a morse "dit"
 void beep_short () {
-    for (uint8_t del1 = 100; del1; del1--) {
+    for (uint8_t del1 = 70; del1; del1--) {
         pause_sound();
         CW_OUT = 0;
         pause_sound();
         CW_OUT = 1;
     }
 }
+//Output a morse "dat"
 void beep_long () {
     beep_short();
     beep_short();
     beep_short();
 }
+#endif
 
+// Lopp for RS232 speed: 1200 baud
+void waitRS232 () {
+   for (uint8_t del2 = 182; del2; del2--) {NOP();} 
+}
 
+// Software UART: send a character
+void sendRS232 (char c) {
+    RS232_OUT = 0;
+    waitRS232();
+    for (uint8_t i=0; i<8; i++) {
+        if (c & 0x01)
+            RS232_OUT = 1;
+        else
+            RS232_OUT = 0;
+        c >>= 1;
+        waitRS232();
+    }
+    RS232_OUT = 1;
+    waitRS232();
+    
+}
+
+//Output a number in morse code
 void morse(uint8_t val) {
-    for (int8_t ii=254; ii!=3; ii++) {
-        if ((val+ii) > 250)
+#ifndef DEBUG_FRQ 
+    val-=6;
+    for (int8_t ii=0; ii!=5; ii++) {
+        if ((uint8_t)(val-ii) > 250)
             beep_short();
         else
             beep_long();
         pause();
     }
     pause_long();
-}
+#else
+    sendRS232( val+'0');
 #endif
+}
 
+// Convert a value into BCD and send it
+void output_val(uint16_t val) {
+uint16_t freq_h;
+uint8_t bcd[5];
+        // convert integer to 5 digits BCD    
+    for (uint8_t i=4; i != 0xFF; i--) {
+        freq_h = val;
+        val = val/10;
+        bcd[i] = freq_h-(val*10);
+    }
+ 
+    // Add 1 to the first digit, because we have subtracted 10000
+#ifdef DEBUG_FRQ
+if (bcd[0]) 
+#endif
+{    
+    morse(bcd[0]+1);
+    pause_long();
+    pause_long();
+    
+    morse(bcd[1]);
+}
+    morse(bcd[2]);
+    morse(bcd[3]);
+    pause_long();
+    pause_long();
+    
+    morse(bcd[4]);
+}
+
+// The main program
 void main(void)
 {
 uint16_t freq;
-uint16_t freq_h;
-uint8_t bcd[5];
+
 uint8_t delaycnt_8;
 union u_period{
     struct {
@@ -110,6 +172,7 @@ union u_period{
 } period;
 uint8_t period_LSB;
 uint8_t tmr0_offset;
+uint8_t test1,test2;
 
     // RA0 is output of CW tone
     TRISA = 0xFE;
@@ -121,8 +184,12 @@ uint8_t tmr0_offset;
     // TMR0 CLKIN without prescaler 
     // Weak Pull Up enabled
     OPTION_REG = 0x7F;
-    
+ 
+#ifdef DEBUG_FRQ
+    while(1){
+#endif     
     pause_sound();
+ 
     
     // Now we count the period of the RF signal
     // To achieve later on a frequency resolution of 100Hz at 7200kHz,
@@ -156,11 +223,15 @@ uint8_t tmr0_offset;
     // Read TMR0 129600 instructions after TMR0 was first read
     // (Measured with PIC simulator)
     period.LSB.byte = TMR0;
-
     // Subtract the start value of TMR0
     period.LSB.byte -= tmr0_offset;
     period.MSB.byte -= tmr0_offset;
-    
+#ifdef DEBUG_FRQ
+    test1 = period.LSB.byte;
+    test2 = period.MSB.byte;
+#endif    
+    if (period.LSB.b7)
+        period.MSB.byte --;
     // TEST with 72000
     //period.MSB.byte = 0x65;
     //period.LSB.byte = 0x40;
@@ -176,6 +247,8 @@ uint8_t tmr0_offset;
     period.w >>= 1;
     period.MSB.b7 = 1;
    
+    // round down
+    period.w--;
    
     // Calculate the frequency
     // Numerator: 129600 instructions at 8MHz flck => 129600 * 80000 / 2 / 2
@@ -193,35 +266,22 @@ uint8_t tmr0_offset;
     if (SHIFT_IN == 0)
         freq -= 7;
 
-#ifdef DEBUG_FRQ
-    debug_frq(freq);
-#endif       
-    
-    // convert integer to 5 digits BCD    
-    for (uint8_t i=4; i != 0xFF; i--) {
-        freq_h = freq;
-        freq = freq/10;
-        bcd[i] = freq_h-(freq*10);
-    }
- 
- 
-    // Add 1 to the first digit, because we have subtracted 10000
-    
+    output_val(freq);
+
+     
 #ifndef DEBUG_FRQ
-    morse(bcd[0]+1);
-    pause_long();
-    pause_long();
-    
-    morse(bcd[1]);
-    morse(bcd[2]);
-    morse(bcd[3]);
-    pause_long();
-    pause_long();
-    
-    morse(bcd[4]);
-#endif        
     // Stop
     while(1);
+#endif
+#ifdef DEBUG_FRQ
+    sendRS232(' ');
+    output_val(test1);
+    sendRS232(' ');
+    output_val(test2);
 
+    sendRS232('\n');
+    sendRS232('\r');
+}
+#endif    
 }
 
