@@ -17,15 +17,9 @@ Switch RA3 to GND to add an offset of -700Hz
 The supply voltage 3.3V or 5V depends on the used oscillator.
 
 ![Hardware SMD](hardware.png "Hardware SMD")
+![Hardware SMD](frq40m.jpg "Hardware SMD")
 
 
-
-
-It's also possible to choose THD components.
-Then the size would be something like:
-
-
-![Hardware THD](hardware_thd.png "Hardware THD")
 
 ## IDE
 IDE: MPLAB X ID v3.55  
